@@ -1,0 +1,20 @@
+==id $Id: asyncio_lib.sfd,v 1.0 2003/12/28 01:24:46 noname Exp $
+==base _AsyncIOBase
+* "asyncio.library"
+==bias 30
+==public
+==include <libraries/asyncio.h>
+struct AsyncFile * OpenAsync(STRPTR fileName, ULONG mode, LONG bufferSize) (a0,d0,d1)
+struct AsyncFile * OpenAsyncFromFH(BPTR handle, ULONG mode, LONG bufferSize) (a0,d0,d1)
+LONG CloseAsync(struct AsyncFile * file) (a0)
+LONG SeekAsync(struct AsyncFile * file, LONG position, LONG mode) (a0,d0,d1)
+LONG ReadAsync(struct AsyncFile * file, APTR buffer, LONG bytes) (a0,a1,d0)
+LONG WriteAsync(struct AsyncFile * file, APTR buffer, LONG bytes) (a0,a1,d0)
+LONG ReadCharAsync(struct AsyncFile * file) (a0)
+LONG WriteCharAsync(struct AsyncFile * file, ULONG ch) (a0,d0)
+LONG ReadLineAsync(struct AsyncFile * file, STRPTR buf, LONG bytes) (a0,a1,d0)
+LONG WriteLineAsync(struct AsyncFile * file, STRPTR buf) (a0,a1)
+STRPTR FGetsAsync(struct AsyncFile * file, STRPTR buf, LONG bytes) (a0,a1,d0)
+STRPTR FGetsLenAsync(struct AsyncFile * file, STRPTR buf, LONG bytes, LONG * length) (a0,a1,d0,a2)
+LONG PeekAsync(struct AsyncFile * file, APTR buffer, LONG bytes) (a0,a1,d0)
+==end
