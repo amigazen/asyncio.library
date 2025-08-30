@@ -1,0 +1,320 @@
+#
+# :ts=8
+#
+###############################################################################
+
+NAME = asyncio.library
+
+###############################################################################
+
+OPTIMIZE = optimize opttime
+#DEBUG = line
+DEBUG = symbolflush noopt
+
+###############################################################################
+
+CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
+	includedir=/include includedir=include: $(OPTIMIZE) debug=$(DEBUG) \
+	params=register strsect=code mccons smallcode smalldata \
+	unsignedchars nomultipleincludes structureequivalence \
+	optimizescheduler noversion noicons memorysize=huge \
+	stringsconst nostartup
+AFLAGS = -d
+LFLAGS = addsym smallcode smalldata noicons batch stripdebug
+
+###############################################################################
+
+# Source files (same as DMakeFile)
+SRC = CloseAsync.c OpenAsync.c OpenAsyncFH.c OpenAsyncFromFH.c PeekAsync.c \
+      ReadAsync.c ReadCharAsync.c ReadLineAsync.c RecordAsyncFailure.c \
+      RequeuePacket.c SeekAsync.c SendPacket.c WaitPacket.c WriteAsync.c \
+      WriteCharAsync.c WriteLineAsync.c FGetsLenAsync.c
+
+# Object files for shared library (LVO)
+OBJS = \
+	Lib.o \
+	OpenAsync.o \
+	OpenAsyncFromFH.o \
+	OpenAsyncFH.o \
+	CloseAsync.o \
+	SeekAsync.o \
+	ReadAsync.o \
+	WriteAsync.o \
+	ReadCharAsync.o \
+	WriteCharAsync.o \
+	ReadLineAsync.o \
+	WriteLineAsync.o \
+	FGetsLenAsync.o \
+	PeekAsync.o \
+	WaitPacket.o \
+	SendPacket.o \
+	RequeuePacket.o \
+	RecordAsyncFailure.o
+
+# Object files for static library (normal)
+OBJS_STATIC = \
+	ol/CloseAsync.o \
+	ol/OpenAsync.o \
+	ol/OpenAsyncFH.o \
+	ol/OpenAsyncFromFH.o \
+	ol/PeekAsync.o \
+	ol/ReadAsync.o \
+	ol/ReadCharAsync.o \
+	ol/ReadLineAsync.o \
+	ol/RecordAsyncFailure.o \
+	ol/RequeuePacket.o \
+	ol/SeekAsync.o \
+	ol/SendPacket.o \
+	ol/WaitPacket.o \
+	ol/WriteAsync.o \
+	ol/WriteCharAsync.o \
+	ol/WriteLineAsync.o \
+	ol/FGetsLenAsync.o \
+	AsyncLib.o \
+	AsyncLibVer.o
+
+# Object files for static library (registered args)
+OBJS_STATIC_R = \
+	olr/CloseAsync.o \
+	olr/OpenAsync.o \
+	olr/OpenAsyncFH.o \
+	olr/OpenAsyncFromFH.o \
+	olr/PeekAsync.o \
+	olr/ReadAsync.o \
+	olr/ReadCharAsync.o \
+	olr/ReadLineAsync.o \
+	olr/RecordAsyncFailure.o \
+	olr/RequeuePacket.o \
+	olr/SeekAsync.o \
+	olr/SendPacket.o \
+	olr/WaitPacket.o \
+	olr/WriteAsync.o \
+	olr/WriteCharAsync.o \
+	olr/WriteLineAsync.o \
+	olr/FGetsLenAsync.o \
+	AsyncLib.o \
+	AsyncLibVer.o
+
+###############################################################################
+
+LIBS = sc:lib/scnb.lib lib:small.lib lib:debug.lib
+
+###############################################################################
+
+all: $(NAME) linklibs unittests
+
+# Create object directories
+ol olr:
+	makedir $@
+
+###############################################################################
+
+$(NAME): $(OBJS)
+	Sc $(LFLAGS) NOSTARTUP LINK TO $@ $(OBJS)
+
+###############################################################################
+
+clean:
+	delete $(NAME) $(NAME).debug $(NAME).map $(OBJS) 
+	delete /lib/asyncio.lib /lib/asyncior.lib
+	delete ol/*.o olr/*.o all
+	cd unittests && smake clean
+
+version:
+	bumprev $(VERSION) $(NAME)
+
+###############################################################################
+
+# Link libraries for normal linking (non-shared)
+linklibs: /lib/asyncio.lib /lib/asyncior.lib
+
+/lib/asyncio.lib: ol $(OBJS_STATIC)
+	Sc OBJLIB $@ $(OBJS_STATIC)
+
+/lib/asyncior.lib: olr $(OBJS_STATIC_R)
+	Sc OBJLIB $@ $(OBJS_STATIC_R)
+
+
+###############################################################################
+
+# Compilation rules for shared library (LVO)
+# Each object file is compiled from its corresponding source file with ASIO_SHARED_LIB defined
+Lib.o: Lib.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+OpenAsync.o: OpenAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+OpenAsyncFromFH.o: OpenAsyncFromFH.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+OpenAsyncFH.o: OpenAsyncFH.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+CloseAsync.o: CloseAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+SeekAsync.o: SeekAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+ReadAsync.o: ReadAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+WriteAsync.o: WriteAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+ReadCharAsync.o: ReadCharAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+WriteCharAsync.o: WriteCharAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+ReadLineAsync.o: ReadLineAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+WriteLineAsync.o: WriteLineAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+FGetsLenAsync.o: FGetsLenAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+PeekAsync.o: PeekAsync.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+WaitPacket.o: WaitPacket.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+SendPacket.o: SendPacket.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+RequeuePacket.o: RequeuePacket.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+RecordAsyncFailure.o: RecordAsyncFailure.c
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+# Compilation rules for static library (normal)
+# Each object file is compiled from its corresponding source file
+ol/CloseAsync.o: CloseAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/OpenAsync.o: OpenAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/OpenAsyncFH.o: OpenAsyncFH.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/OpenAsyncFromFH.o: OpenAsyncFromFH.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/PeekAsync.o: PeekAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/ReadAsync.o: ReadAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/ReadCharAsync.o: ReadCharAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/ReadLineAsync.o: ReadLineAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/RecordAsyncFailure.o: RecordAsyncFailure.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/RequeuePacket.o: RequeuePacket.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/SeekAsync.o: SeekAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/SendPacket.o: SendPacket.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/WaitPacket.o: WaitPacket.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/WriteAsync.o: WriteAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/WriteCharAsync.o: WriteCharAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/WriteLineAsync.o: WriteLineAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+ol/FGetsLenAsync.o: FGetsLenAsync.c
+	Sc $(CFLAGS) PARAMS STACK OBJNAME $@ $<
+
+# Compilation rules for static library (registered args)
+olr/CloseAsync.o: CloseAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/OpenAsync.o: OpenAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/OpenAsyncFH.o: OpenAsyncFH.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/OpenAsyncFromFH.o: OpenAsyncFromFH.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/PeekAsync.o: PeekAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/ReadAsync.o: ReadAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/ReadCharAsync.o: ReadCharAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/ReadLineAsync.o: ReadLineAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/RecordAsyncFailure.o: RecordAsyncFailure.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/RequeuePacket.o: RequeuePacket.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/SeekAsync.o: SeekAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/SendPacket.o: SendPacket.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/WaitPacket.o: WaitPacket.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/WriteAsync.o: WriteAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/WriteCharAsync.o: WriteCharAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/WriteLineAsync.o: WriteLineAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+olr/FGetsLenAsync.o: FGetsLenAsync.c
+	Sc $(CFLAGS) DEF ASIO_REGARGS OBJNAME $@ $<
+
+# Special rules for AsyncLib files
+AsyncLib.o: AsyncLib.c async.h
+	Sc $(CFLAGS) OBJNAME $@ $<
+
+AsyncLibVer.o: AsyncLibVer.c
+	Sc $(CFLAGS) OBJNAME $@ $<
+
+###############################################################################
+
+unittests:
+	cd unittests && smake all
+
+###############################################################################
+
+# Dependencies for shared library objects
+$(OBJS): async.h
+
+# Dependencies for static library objects
+$(OBJS_STATIC): async.h
+$(OBJS_STATIC_R): async.h
