@@ -16,7 +16,7 @@ extern "C" {
 #include <libraries/asyncio.h>
 #endif
 
-/* "asyncio.library"*/
+/*"asyncio.library"*/
 struct AsyncFile *OpenAsync(STRPTR fileName, ULONG mode, LONG bufferSize);
 struct AsyncFile *OpenAsyncFromFH(BPTR handle, ULONG mode, LONG bufferSize);
 LONG CloseAsync(struct AsyncFile *file);

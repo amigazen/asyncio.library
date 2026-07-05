@@ -21,7 +21,7 @@
 #include <exec/libraries.h>
 #endif /* EXEC_LIBRARIES_H */
 
-extern  AsyncIOBase;
+extern struct Library * AsyncIOBase;
 #endif /* __NOLIBBASE__ */
 
 

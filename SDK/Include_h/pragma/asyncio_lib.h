@@ -12,7 +12,7 @@
 #include <clib/asyncio_protos.h>
 #endif /* CLIB_ASYNCIO_PROTOS_H */
 
-/* "asyncio.library" */
+/*"asyncio.library" */
 #pragma amicall(AsyncIOBase, 0x1E, OpenAsync(a0,d0,d1))
 #pragma amicall(AsyncIOBase, 0x24, OpenAsyncFromFH(a0,d0,d1))
 #pragma amicall(AsyncIOBase, 0x2A, CloseAsync(a0))

@@ -12,7 +12,7 @@
 #include <clib/asyncio_protos.h>
 #endif /* CLIB_ASYNCIO_PROTOS_H */
 
-/* "asyncio.library" */
+/*"asyncio.library" */
 #pragma libcall AsyncIOBase OpenAsync 1E 10803
 #pragma libcall AsyncIOBase OpenAsyncFromFH 24 10803
 #pragma libcall AsyncIOBase CloseAsync 2A 801
