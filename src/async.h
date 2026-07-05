@@ -1,9 +1,23 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * async.h - internal asyncio.library definitions
+ */
+
+#ifndef ASYNCIO_ASYNC_H
+#define ASYNCIO_ASYNC_H
+
 #include <exec/types.h>
 #include <exec/memory.h>
 #include <dos/dos.h>
 #include <dos/dosextens.h>
 
-#include <clib/asyncio_protos.h>
+#include "compiler.h"
+
+#ifndef LIBRARIES_ASYNCIO_H
+#include <libraries/asyncio.h>
+#endif
+
 #include <clib/exec_protos.h>
 #include <clib/dos_protos.h>
 
@@ -11,42 +25,6 @@
 #include <pragmas/dos_pragmas.h>
 
 #include <string.h>
-
-
-/*****************************************************************************/
-
-
-#ifdef _DCC
-
-#ifdef ASIO_SHARED_LIB
-#define _LIBCALL __geta4 _ASM _ARGS
-#else
-#define _LIBCALL _ASM _ARGS
-#endif
-
-#else
-
-#ifdef __GNUC__
-
-#define _LIBCALL
-
-#else /* __SASC__ */
-
-#ifdef ASIO_SHARED_LIB
-#define _LIBCALL __saveds _ASM _ARGS
-#else
-#define _LIBCALL _ASM _ARGS
-#endif
-
-#endif /* _ GNUC_  */
-
-#endif /* _DCC */
-
-#define _CALL _ASM _ARGS
-
-
-/*****************************************************************************/
-
 
 #ifndef ASIO_NOEXTERNALS
 extern struct DosLibrary	*DOSBase;
@@ -59,11 +37,6 @@ extern struct Library		*UtilityBase;
 extern struct DosLibrary	*DOSBase;
 #endif
 
-
-/*****************************************************************************/
-
-
-/* this macro lets us long-align structures on the stack */
 #define D_S(type,name) char a_##name[ sizeof( type ) + 3 ]; \
 			type *name = ( type * ) ( ( LONG ) ( a_##name + 3 ) & ~3 );
 
@@ -71,19 +44,17 @@ extern struct DosLibrary	*DOSBase;
 #define MIN(a,b) ( ( a ) < ( b ) ? ( a ) : ( b ) )
 #endif
 
-
-/*****************************************************************************/
-
-
 #ifdef ASIO_NOEXTERNALS
-AsyncFile *
-AS_OpenAsyncFH( BPTR handle, OpenModes mode, LONG bufferSize, BOOL closeIt, struct ExecBase *SysBase, struct DosLibrary *DOSBase );
+struct AsyncFile *
+AS_OpenAsyncFH( BPTR handle, ULONG mode, LONG bufferSize, BOOL closeIt,
+	struct ExecBase *SysBase, struct DosLibrary *DOSBase );
 #else
-AsyncFile *
-AS_OpenAsyncFH( BPTR handle, OpenModes mode, LONG bufferSize, BOOL closeIt );
+struct AsyncFile *
+AS_OpenAsyncFH( BPTR handle, ULONG mode, LONG bufferSize, BOOL closeIt );
 #endif
-VOID AS_SendPacket( AsyncFile *file, APTR arg2 );
-LONG AS_WaitPacket( AsyncFile *file );
-VOID AS_RequeuePacket( AsyncFile *file );
-VOID AS_RecordSyncFailure( AsyncFile *file );
+VOID AS_SendPacket( struct AsyncFile *file, APTR arg2 );
+LONG AS_WaitPacket( struct AsyncFile *file );
+VOID AS_RequeuePacket( struct AsyncFile *file );
+VOID AS_RecordSyncFailure( struct AsyncFile *file );
 
+#endif /* ASYNCIO_ASYNC_H */

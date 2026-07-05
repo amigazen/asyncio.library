@@ -1,8 +1,9 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_LIBCALL LONG
-CloseAsync( _REG( a0 ) AsyncFile *file )
+AS_LVO LONG
+CloseAsync(AS_REG(a0, struct AsyncFile *file))
 {
 	LONG	result;
 
@@ -18,7 +19,6 @@ CloseAsync( _REG( a0 ) AsyncFile *file )
 		{
 			if( !file->af_ReadMode )
 			{
-				/* this will flush out any pending data in the write buffer */
 				if( file->af_BufferSize > file->af_BytesLeft )
 				{
 					result = Write(

@@ -1,20 +1,21 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
 #ifdef ASIO_NOEXTERNALS
-_LIBCALL AsyncFile *
+AS_LVO struct AsyncFile *
 OpenAsync(
-	_REG( a0 ) const STRPTR fileName,
-	_REG( d0 ) OpenModes mode,
-	_REG( d1 ) LONG bufferSize,
-	_REG( a1 ) struct ExecBase *SysBase,
-	_REG( a2 ) struct DosLibrary *DOSBase )
+	AS_REG(a0, STRPTR fileName),
+	AS_REG(d0, ULONG mode),
+	AS_REG(d1, LONG bufferSize),
+	AS_REG(a1, struct ExecBase *SysBase),
+	AS_REG(a2, struct DosLibrary *DOSBase))
 #else
-_LIBCALL AsyncFile *
+AS_LVO struct AsyncFile *
 OpenAsync(
-	_REG( a0 ) const STRPTR fileName,
-	_REG( d0 ) OpenModes mode,
-	_REG( d1 ) LONG bufferSize )
+	AS_REG(a0, STRPTR fileName),
+	AS_REG(d0, ULONG mode),
+	AS_REG(d1, LONG bufferSize))
 #endif
 {
 	static const WORD PrivateOpenModes[] =
@@ -22,7 +23,7 @@ OpenAsync(
 		MODE_OLDFILE, MODE_NEWFILE, MODE_READWRITE
 	};
 	BPTR		handle;
-	AsyncFile	*file = NULL;
+	struct AsyncFile	*file = NULL;
 
 	if( handle = Open( fileName, PrivateOpenModes[ mode ] ) )
 	{

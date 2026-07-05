@@ -2,17 +2,17 @@
 
 
 #ifdef ASIO_NOEXTERNALS
-AsyncFile*
+struct AsyncFile *
 AS_OpenAsyncFH(
 	BPTR handle,
-	OpenModes mode,
+	ULONG mode,
 	LONG bufferSize,
 	BOOL closeIt,
 	struct ExecBase *SysBase,
 	struct DosLibrary *DOSBase )
 #else
-AsyncFile *
-AS_OpenAsyncFH( BPTR handle, OpenModes mode, LONG bufferSize, BOOL closeIt )
+struct AsyncFile *
+AS_OpenAsyncFH( BPTR handle, ULONG mode, LONG bufferSize, BOOL closeIt )
 #endif
 {
 	struct FileHandle	*fh;

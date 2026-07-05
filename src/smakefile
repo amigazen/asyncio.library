@@ -14,7 +14,7 @@ DEBUG = symbolflush noopt
 ###############################################################################
 
 CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
-	includedir=/include includedir=include: $(OPTIMIZE) debug=$(DEBUG) \
+	includedir=/include includedir=/SDK/Include_h includedir=include: $(OPTIMIZE) debug=$(DEBUG) \
 	params=register strsect=code mccons smallcode smalldata \
 	unsignedchars nomultipleincludes structureequivalence \
 	optimizescheduler noversion noicons memorysize=huge \
@@ -32,7 +32,8 @@ SRC = CloseAsync.c OpenAsync.c OpenAsyncFH.c OpenAsyncFromFH.c PeekAsync.c \
 
 # Object files for shared library (LVO)
 OBJS = \
-	Lib.o \
+	StartUp.o \
+	LibInit.o \
 	OpenAsync.o \
 	OpenAsyncFromFH.o \
 	OpenAsyncFH.o \
@@ -139,7 +140,10 @@ linklibs: /lib/asyncio.lib /lib/asyncior.lib
 
 # Compilation rules for shared library (LVO)
 # Each object file is compiled from its corresponding source file with ASIO_SHARED_LIB defined
-Lib.o: Lib.c
+LibInit.o: LibInit.c private/as_build.h Rev.h
+	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
+
+StartUp.o: StartUp.c private/as_build.h compiler.h asyncio_funcs.h
 	Sc $(CFLAGS) DEF ASIO_SHARED_LIB UTILLIB OBJNAME $@ $<
 
 OpenAsync.o: OpenAsync.c
@@ -312,9 +316,14 @@ unittests:
 
 ###############################################################################
 
+headers:
+	/tools/sync_include.sh
+
+###############################################################################
+
 # Dependencies for shared library objects
-$(OBJS): async.h
+$(OBJS): async.h asyncio_funcs.h compiler.h
 
 # Dependencies for static library objects
-$(OBJS_STATIC): async.h
-$(OBJS_STATIC_R): async.h
+$(OBJS_STATIC): async.h asyncio_funcs.h compiler.h
+$(OBJS_STATIC_R): async.h asyncio_funcs.h compiler.h

@@ -1,10 +1,12 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_CALL LONG
-WriteLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) STRPTR line )
+AS_LVO LONG
+WriteLineAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, STRPTR line))
 {
-	/* Since SAS/C have an inlined strlen... */
 #if defined( NOEXTERNALS ) && !defined( __SAS )
 	LONG	i = 0;
 	STRPTR	s = line;

@@ -1,9 +1,8 @@
-#define VERSION "39.2"
-#define DATE "9.11.97"
+#define VERSION "39.3"
+#define DATE "5.7.26"
 #define DAY 9
-#define MONTH 11
-#define YEAR 97
+#define MONTH 7
+#define YEAR 26
 #define VERNUM 39
-#define REVNUM 2
-#define SUBREVNUM 10
-#define DATESTAMP { 7252, 639, 299 }
+#define REVNUM 3
+#define SUBREVNUM 0

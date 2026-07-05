@@ -1,8 +1,12 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_LIBCALL LONG
-ReadAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG numBytes )
+AS_LVO LONG
+ReadAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, APTR buffer),
+	AS_REG(d0, LONG numBytes))
 {
 #ifdef ASIO_NOEXTERNALS
 	struct ExecBase	*SysBase = file->af_SysBase;
@@ -10,13 +14,8 @@ ReadAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG n
 	LONG totalBytes = 0;
 	LONG bytesArrived;
 
-	/* if we need more bytes than there are in the current buffer, enter the
-	 * read loop
-	 */
-
 	while( numBytes > file->af_BytesLeft )
 	{
-		/* drain buffer */
 		CopyMem( file->af_Offset, buffer, file->af_BytesLeft );
 
 		numBytes		-= file->af_BytesLeft;
@@ -36,10 +35,8 @@ ReadAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG n
 			return( -1 );
 		}
 
-		/* ask that the buffer be filled */
 		AS_SendPacket( file, file->af_Buffers[ 1 - file->af_CurrentBuf ] );
 
-		/* in case we tried to seek past EOF */
 		if( file->af_SeekOffset > bytesArrived )
 		{
 			file->af_SeekOffset = bytesArrived;

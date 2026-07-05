@@ -1,19 +1,21 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_LIBCALL APTR
-FGetsLenAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buf,
-	_REG( d0 ) LONG numBytes, _REG( a2 ) LONG *len )
+AS_LVO STRPTR
+FGetsLenAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, STRPTR buf),
+	AS_REG(d0, LONG numBytes),
+	AS_REG(a2, LONG *len))
 {
 	UBYTE	*p;
 	LONG	length = 0;
 
 	p = ( UBYTE * ) buf;
 
-	/* Make room for \n and \0 */
 	if( --numBytes <= 0 )
 	{
-		/* Handle senseless cases */
 		return( NULL );
 	}
 
@@ -35,13 +37,9 @@ FGetsLenAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buf,
 
 			length += i;
 
-			/* Check for valid EOL char */
 			if( i < count )
 			{
-				/* MH: Since i < count, and count <= numBytes,
-				 * there _is_ room for \n\0.
-				 */
-				*p++ = '\n';	/* "Read" EOL char */
+				*p++ = '\n';
 				++i;
 				length += 1;
 			}
@@ -51,19 +49,11 @@ FGetsLenAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buf,
 
 			if( ( i >= numBytes ) || ( *( p - 1 ) == '\n' ) )
 			{
-				/* MH: It is enough to break out of the loop.
-				 * no need to "waste" code by making a special
-				 * exit here. ;)
-				 */
 				break;
 			}
 
 			numBytes -= i;
 		}
-
-		/* MH: numBytes must be at least 1 here, so there is still room
-		 * for \n\0, in case we read \n.
-		 */
 
 		if( ReadAsync( file, p, 1 ) < 1 )
 		{
@@ -91,8 +81,11 @@ FGetsLenAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buf,
 }
 
 
-_CALL APTR
-FGetsAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buf, _REG( d0 ) LONG numBytes )
+AS_LVO STRPTR
+FGetsAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, STRPTR buf),
+	AS_REG(d0, LONG numBytes))
 {
 	LONG	len;
 

@@ -1,15 +1,18 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_LIBCALL LONG
-WriteAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG numBytes )
+AS_LVO LONG
+WriteAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, APTR buffer),
+	AS_REG(d0, LONG numBytes))
 {
 #ifdef ASIO_NOEXTERNALS
 	struct ExecBase	*SysBase = file->af_SysBase;
 #endif
 	LONG totalBytes = 0;
 
-	/* this takes care of NIL: */
 	if( !file->af_Handler )
 	{
 		file->af_Offset		= file->af_Buffers[ 0 ];
@@ -33,7 +36,6 @@ WriteAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG 
 			return( -1 );
 		}
 
-		/* send the current buffer out to disk */
 		AS_SendPacket( file, file->af_Buffers[ file->af_CurrentBuf ] );
 
 		file->af_CurrentBuf	= 1 - file->af_CurrentBuf;

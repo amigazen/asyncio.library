@@ -1,4 +1,5 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
 static ULONG
@@ -20,8 +21,11 @@ GetFileSize( AsyncFile *file, LONG *size )
 }
 
 
-_LIBCALL LONG
-SeekAsync( _REG( a0 ) AsyncFile *file, _REG( d0 ) LONG position, _REG( d1 ) SeekModes mode )
+AS_LVO LONG
+SeekAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(d0, LONG position),
+	AS_REG(d1, LONG mode))
 {
 #ifdef ASIO_NOEXTERNALS
 	struct DosLibrary	*DOSBase = file->af_DOSBase;

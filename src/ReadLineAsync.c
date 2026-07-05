@@ -1,12 +1,15 @@
 #include "async.h"
+#include "asyncio_funcs.h"
 
 
-_LIBCALL LONG
-ReadLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LONG bufSize )
+AS_LVO LONG
+ReadLineAsync(
+	AS_REG(a0, struct AsyncFile *file),
+	AS_REG(a1, STRPTR buffer),
+	AS_REG(d0, LONG bufSize))
 {
 	LONG	len;
 
-	/* First read any data up to the LF or the buffer is full */
 	if( FGetsLenAsync( file, buffer, bufSize, &len ) )
 	{
 		UBYTE	*end;
@@ -17,7 +20,6 @@ ReadLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LO
 		{
 			UBYTE	ch = 0;
 
-			/* We didn't reach EOF yet */
 			while( TRUE )
 			{
 				UBYTE	*ptr;
@@ -27,14 +29,10 @@ ReadLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LO
 
 				if( count = file->af_BytesLeft )
 				{
-					/* Scan for LF char in buffer */
 					for( i = 0; ( i < count ) && ( *ptr != '\n' ); ++i, ++ptr )
 					{
 					}
 
-					/* If i < count, then the loop above aborted
-					 * due to LF char.
-					 */
 					if( i < count )
 					{
 						ch = '\n';
@@ -46,7 +44,6 @@ ReadLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LO
 
 					if( i < count )
 					{
-						/* All done */
 						break;
 					}
 				}
@@ -58,14 +55,12 @@ ReadLineAsync( _REG( a0 ) AsyncFile *file, _REG( a1 ) APTR buffer, _REG( d0 ) LO
 
 				if( ch == '\n' )
 				{
-					/* All done */
 					break;
 				}
 			}
 
 			if( ch == '\n' )
 			{
-				/* Overwrite last char with LF */
 				*end++ = '\n';
 				*end = '\0';
 			}
