@@ -1,4 +1,4 @@
-==id $VER: asyncio_lib.sfd 39.2 (5.7.2026)
+==id $VER: asyncio_lib.sfd 39.3 (5.7.2026)
 *"asyncio.library"
 ==base _AsyncIOBase
 ==basetype struct Library *
