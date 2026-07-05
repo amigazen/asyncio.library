@@ -4,6 +4,7 @@ asyncio/CloseAsync
 asyncio/FGetsAsync
 asyncio/FGetsLenAsync
 asyncio/OpenAsync
+asyncio/PeekAsync
 asyncio/ReadAsync
 asyncio/ReadCharAsync
 asyncio/ReadLineAsync
@@ -28,18 +29,25 @@ asyncio/WriteLineAsync
 
    INPUTS
 	file - the file to close. May be NULL, in which case this function
-	       returns -1 and sets the IoErr() code to ERROR_INVALID_LOCk.
+	       returns -1 and sets the IoErr() code to ERROR_INVALID_LOCK.
 
    RESULT
 	result - < 0 for an error, >= 0 for success. Indicates whether closing
 	    the file worked or not. If the file was opened in read-mode,
 	    then this call will always work. In case of error,
-		dos.library/IoErr() can give more information.
+	    dos.library/IoErr() can give more information.
+
+   WARNING
+	On write-mode files, CloseAsync() waits for pending async packets
+	and flushes any partially filled write buffer before closing the
+	underlying DOS handle. On read-mode files, CloseAsync() still waits
+	for pending read packets. Always check the return value; a failed
+	flush during close can leave a truncated file on disk.
 
    SEE ALSO
 	OpenAsync(), dos.library/Close()
 
-asyncio/FGetsAsync                                         asyncio/FGetsAsync
+asyncio/FGetsAsync                                         asyncio/FGetsAsync
 
    NAME
 	FGetsAsync -- read a line from an async file, fgets-style.
@@ -179,6 +187,29 @@ asyncio/WriteLineAsync
 	Also note that there is no MODE_READWRITE for AsyncIO. You cannot
 	read and write to the same AsyncFile.
 
+    WARNING
+	OpenAsync() and OpenAsyncFromFH() return an AsyncFile handle that
+	is either read-only (MODE_READ) or write-only (MODE_WRITE or
+	MODE_APPEND). There is no supported way to read and write through
+	the same AsyncFile. If you need both directions, open two handles
+	on the same path (one read, one write) or use dos.library directly.
+
+	MODE_WRITE deletes an existing file of the same name before creating
+	the new file. MODE_APPEND opens an existing file and positions for
+	writing at end-of-file, or creates a new file if none exists.
+
+	The requested bufferSize is rounded up to suit the underlying device
+	block size. Two internal buffers of roughly (bufferSize / 2) each
+	are allocated. Very small bufferSize values may be increased further
+	during open.
+
+	Do not pass window specifications (CON:, RAW:, etc.) or patterns ("*")
+	as fileName unless you accept undefined behaviour. See NOTES above.
+
+    BUGS
+	None known in this release beyond those documented under the
+	individual read, write, and seek functions below.
+
     SEE ALSO
 	CloseAsync(), dos.library/Open()
 
@@ -221,9 +252,22 @@ asyncio/WriteLineAsync
 	actualLength - actual number of bytes read, or -1 if an error. In
 	    case of error, dos.library/IoErr() can give more information.
 
+    WARNING
+	PeekAsync() never reads beyond what is already present in the
+	current async read buffer (and at most one additional filled buffer
+	if the current buffer is empty). It is not a substitute for
+	SeekAsync() followed by ReadAsync() when you need arbitrary
+	forward inspection at a new file offset.
+
+	If the current buffer is empty, PeekAsync() internally calls
+	ReadAsync() to prefetch data, then adjusts the internal buffer
+	pointers so the logical read position is unchanged. Side effects
+	of that prefetch (buffer state, pending packets) are the same as
+	for a normal ReadAsync() of one byte.
+
     SEE ALSO
 	OpenAsync(), CloseAsync(), ReadCharAsync(), WriteAsync(),
-	dos.library/Read()
+	ReadAsync(), dos.library/Read()
 
 
 asyncio/ReadAsync                                           asyncio/ReadAsync
@@ -258,11 +302,18 @@ asyncio/WriteLineAsync
 	actualLength - actual number of bytes read, or -1 if an error. In
 	    case of error, dos.library/IoErr() can give more information.
 
+    WARNING
+	ReadAsync() is intended for files opened with MODE_READ (or
+	OpenAsyncFromFH() with MODE_READ). The library does not reject
+	calls on write-mode handles: data may be copied from the internal
+	write buffer and a positive byte count may be returned instead of
+	-1. Do not use ReadAsync() to read from a write-only AsyncFile.
+
     SEE ALSO
 	OpenAsync(), CloseAsync(), ReadCharAsync(), WriteAsync(),
-	dos.library/Read()
+	PeekAsync(), dos.library/Read()
 
-asyncio/ReadCharAsync                                   asyncio/ReadCharAsync
+asyncio/ReadCharAsync                                   asyncio/ReadCharAsync
 
    NAME
 	ReadCharAsync -- read a single byte from an async file.
@@ -287,8 +338,14 @@ asyncio/WriteLineAsync
 	    returns 0, it means end-of-file was reached. Any other value
 	    indicates an error.
 
+   WARNING
+	ReadCharAsync() inherits the same read-mode restriction as
+	ReadAsync(). On a write-mode AsyncFile it may return bytes from
+	the internal write buffer rather than -1. Use only on read-mode
+	handles.
+
    SEE ALSO
-	OpenAsync(), CloseAsync(), ReadAsync(), WriteCharAsync()
+	OpenAsync(), CloseAsync(), ReadAsync(), WriteCharAsync(),
 	dos.library/Read()
 
 asyncio/ReadLineAsync                                   asyncio/ReadLineAsync
@@ -326,6 +383,12 @@ asyncio/WriteLineAsync
 	bytes - number of bytes read. In case of error (-1 is returned)
 	    dos.library/IoErr() can give more information. EOF is indicated
 	    by a return of 0.
+
+   WARNING
+	ReadLineAsync(), FGetsAsync(), and FGetsLenAsync() are read-mode
+	functions. Use them only on AsyncFile handles opened for reading.
+	They depend on ReadAsync() internally and inherit its behaviour on
+	mis-matched handles.
 
    SEE ALSO
 	OpenAsync(), CloseAsync(), ReadCharAsync(), FGetsAsync(),
@@ -374,6 +437,37 @@ asyncio/WriteLineAsync
 	This can cause small delays. Note that the above case isn't the
 	only one, but the typical one.
 
+    WARNING
+	In read mode, SeekAsync() returns the logical file position
+	*before* the seek is applied, not necessarily the new position
+	after the seek completes. To verify where reading will continue,
+	follow with ReadAsync() or use dos.library/Seek() on the underlying
+	BPTR if you obtained one separately.
+
+	Seeking in write mode (MODE_WRITE or MODE_APPEND) flushes any
+	partially filled write buffer through dos.library/Write() and then
+	calls dos.library/Seek() directly. This can leave the on-disk file
+	at a non-block-aligned offset and is slower than read-mode seeking
+	within buffered data. Write-mode seeking is supported but should be
+	used sparingly (for example IFF chunk size rewrite).
+
+	Back-to-back SeekAsync() calls without intervening ReadAsync() or
+	WriteAsync() can be sensitive to internal double-buffer state,
+	especially immediately after OpenAsync() or when a prior seek left
+	a non-zero af_SeekOffset. When possible, perform a read or write
+	between consecutive seeks, or reopen the file.
+
+	Seeking past end-of-file in read mode is treated as an error
+	(ERROR_SEEK_ERROR). Experimental recovery state exists for some
+	resume cases; do not rely on seeking past EOF in portable code.
+
+    BUGS
+	The autodoc description above says the result is the "current
+	absolute position" after seeking. In read mode the implementation
+	returns the pre-seek logical position instead. Treat the return
+	value as the previous cursor position, or ignore it and use
+	subsequent I/O to confirm position.
+
     SEE ALSO
 	OpenAsync(), CloseAsync(), ReadAsync(), WriteAsync(),
 	dos.library/Seek()
@@ -406,6 +500,15 @@ asyncio/WriteLineAsync
 	actualLength - number of bytes written, or -1 if error. In case
 	    of error, dos.library/IoErr() can give more information.
 
+    WARNING
+	WriteAsync() is intended for files opened with MODE_WRITE or
+	MODE_APPEND (or OpenAsyncFromFH() with those modes). The library
+	does not reject calls on read-mode handles: bytes may be accepted
+	into the internal buffer and a positive return value may be reported
+	even though no data is written to the file on disk. Always verify
+	persistence by reopening for read or by using dos.library if you
+	must write through a handle that was opened for reading.
+
     SEE ALSO
 	OpenAsync(), CloseAsync(), ReadAsync(), WriteCharAsync(),
 	dos.library/Write()
@@ -432,11 +535,16 @@ asyncio/WriteLineAsync
 	result - 1 if the byte was written, -1 if there was an error. In
 	    case of error, dos.library/IoErr() can give more information.
 
+   WARNING
+	WriteCharAsync() inherits the same write-mode restriction as
+	WriteAsync(). On a read-mode AsyncFile it may report success without
+	altering file contents on disk.
+
    SEE ALSO
 	OpenAsync(), CloseAsync(), ReadAsync(), WriteAsync(),
 	dos.library/Write()
 
-asyncio/WriteLineAsync                                 asyncio/WriteLineAsync
+asyncio/WriteLineAsync                                 asyncio/WriteLineAsync
 
    NAME
 	WriteLineAsync -- write a line to an async file.
@@ -451,12 +559,17 @@ asyncio/WriteLineAsync
 	newline is appended to the string.
 
    INPUTS
-	file - opened file to read from, as obtained from OpenAsync()
-	buffer - buffer to write to the file
+	file - opened file to write to, as obtained from OpenAsync()
+	buffer - null-terminated string to write (newline is NOT appended)
 
    RESULT
 	bytes - number of bytes written, or -1 if there was an error. In
 	    case of error, dos.library/IoErr() can give more information.
+
+   WARNING
+	WriteLineAsync() requires a write-mode AsyncFile (MODE_WRITE or
+	MODE_APPEND). The string must already contain any newline you want
+	in the file; this function does not append one automatically.
 
    SEE ALSO
 	OpenAsync(), CloseAsync(), ReadCharAsync(), WriteCharAsync(),
