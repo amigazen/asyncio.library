@@ -14,7 +14,7 @@ DEBUG = symbolflush noopt
 ###############################################################################
 
 CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
-	includedir=../../SDK/Include_h includedir=include: \
+	includedir=//SDK/Include_h includedir=include: \
 	$(OPTIMIZE) debug=$(DEBUG) \
 	params=register strsect=code mccons \
 	unsignedchars nomultipleincludes structureequivalence \

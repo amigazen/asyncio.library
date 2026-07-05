@@ -14,7 +14,7 @@ DEBUG = symbolflush noopt
 ###############################################################################
 
 CFLAGS = resopt idlen=64 comnest streq strmerge nostkchk \
-	includedir=/include includedir=/SDK/Include_h includedir=include: $(OPTIMIZE) debug=$(DEBUG) \
+	includedir=include includedir=/SDK/Include_h includedir=include: $(OPTIMIZE) debug=$(DEBUG) \
 	params=register strsect=code mccons smallcode smalldata \
 	unsignedchars nomultipleincludes structureequivalence \
 	optimizescheduler noversion noicons memorysize=huge \
@@ -117,7 +117,7 @@ $(NAME): $(OBJS)
 
 clean:
 	delete $(NAME) $(NAME).debug $(NAME).map $(OBJS) 
-	delete /lib/asyncio.lib /lib/asyncior.lib
+	delete /SDK/lib/asyncio.lib /SDK/lib/asyncior.lib
 	delete ol/*.o olr/*.o all
 	cd unittests && smake clean
 
@@ -127,12 +127,12 @@ version:
 ###############################################################################
 
 # Link libraries for normal linking (non-shared)
-linklibs: /lib/asyncio.lib /lib/asyncior.lib
+linklibs: /SDK/lib/asyncio.lib /SDK/lib/asyncior.lib
 
-/lib/asyncio.lib: ol $(OBJS_STATIC)
+/SDK/lib/asyncio.lib: ol $(OBJS_STATIC)
 	Sc OBJLIB $@ $(OBJS_STATIC)
 
-/lib/asyncior.lib: olr $(OBJS_STATIC_R)
+/SDK/lib/asyncior.lib: olr $(OBJS_STATIC_R)
 	Sc OBJLIB $@ $(OBJS_STATIC_R)
 
 
@@ -316,8 +316,12 @@ unittests:
 
 ###############################################################################
 
-headers:
-	/tools/sync_include.sh
+install:
+	copy asyncio.library to LIBS:asyncio.library clone
+	avail flush >nil:
+
+release: 
+	copy asyncio.library to /SDK/libs/asyncio.library clone
 
 ###############################################################################
 
