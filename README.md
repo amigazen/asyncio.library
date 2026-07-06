@@ -40,7 +40,7 @@ Independent ports followed on other Amiga platforms without sharing version numb
 | 1997 | 39.2a | 68k archive | Magnus Holmgren | Added missing `AsyncIO.guide` and icons only |
 | 2000–01 | 40.0–40.6 | **WarpOS PPC** | Achim Stegemann | Parallel `*PPC` LVOs; 68k V39 API unchanged on 68k side |
 | 2003–05 | 50.3 | **AmigaOS 4** | Hyperion / Amiga Inc. | Native OS4 library; new interface numbering |
-| 2025 | 39.3 | 68k ToolKit prep | amigazen / Tim | SAS/C + NDK 3.2, SFD, SMakefile, first unit tests |
+| 2025 | 39.3 | 68k ToolKit prep | amigazen project | SAS/C + NDK 3.2, SFD, SMakefile, first unit tests |
 | 2026 | 39.3 | **amigazen release** | amigazen project | CLib37x startup split, canonical SDK headers, AsyncTest, autodoc warnings |
 
 See [CHANGELOG.md](CHANGELOG.md) for per-release detail.
